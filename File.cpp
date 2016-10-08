@@ -24,24 +24,17 @@ File::File(const string &fileName) {
         } else if (fieldName == "EDGE_WEIGHT_TYPE") {
             edge_weight_type = field;
         } else if (fieldName == "NODE_COORD_SECTION") {
-            node_coord_section = new string[dimension];
             for (auto i = 0; i < dimension; i++) {
                 getline(file, line);
-                node_coord_section[i] = line;
+                node_coord_section.push_back(line);
             }
+        } else if (fieldName == "EOF") {
+            break;
         } else {
-            cout << line << endl;
+            cout << "fieldName: " << fieldName << endl;
         }
     }
     file.close();
-}
-
-string File::toString() {
-    return "name: " + name +
-           "\ncomment: " + comment +
-           "\ntype: " + type +
-           "\ndimension: " + int2string(dimension) +
-           "\nedge_weight_type: " + edge_weight_type;
 }
 
 string File::int2string(int n) {

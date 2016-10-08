@@ -3,5 +3,5 @@ project(pea)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(SOURCE_FILES main.cpp File.cpp File.h)
+set(SOURCE_FILES main.cpp File.cpp File.h City.cpp City.h Graph.cpp Graph.h)
 add_executable(pro ${SOURCE_FILES})

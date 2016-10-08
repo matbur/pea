@@ -9,6 +9,7 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
@@ -18,15 +19,11 @@ public:
             type,
             name,
             comment,
-            display_data_type,
-            edge_weight_type,
-            edge_weight_format;
-    string *node_coord_section;
+            edge_weight_type;
     int dimension;
+    vector<string> node_coord_section;
 
     File(const string &fileName);
-
-    string toString();
 
     static string int2string(int n);
 };
