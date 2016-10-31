@@ -7,7 +7,9 @@
 int main() {
     srand((unsigned int) time(nullptr));
 
-    auto g = new Graph("data/my10.tsp");
+//    auto g = new Graph("data/my10.tsp");
+//    auto g = new Graph("data/eil51.tsp");
+    auto g = new Graph("data/st70.tsp");
 
     g->run();
 

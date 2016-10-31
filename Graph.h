@@ -17,9 +17,7 @@ class Graph {
 public:
     vector<City> cities;
     int points;
-    double T = 1000,
-            Tmin = 1,
-            alpha = .99;
+    double T, Tmin = .0001, alpha = .999;
 
     Graph(File file);
 
@@ -35,7 +33,7 @@ public:
 
     double P(vector<City> &c) const;
 
-    double G();
+    double G() const;
 
     int randrange() const;
 
@@ -50,4 +48,6 @@ public:
     void print() const;
 
     void print_permutation() const;
+
+    void initT();
 };

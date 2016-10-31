@@ -21,34 +21,49 @@ void Graph::init(File *file) {
     for (auto i: file->node_coord_section) {
         cities.push_back(City(i));
     }
-    random_shuffle(cities.begin(), cities.end());
+
+    initT();
 }
 
 void Graph::run() {
+    auto best = cities;
+    random_shuffle(cities.begin(), cities.end());
     auto i = 0;
     while (T > Tmin) {
         i++;
         next_step();
+        if (i % 100 == 0)
+            printf("%d: %.10f    %d    %d\n", i, T, getTotalDistance(), getTotalDistance(best));
+        if (getTotalDistance(cities) < getTotalDistance(best)) {
+            puts("zmieniono");
+            best = cities;
+        }
     }
     cout << i << endl;
+    cities = best;
 }
 
 void Graph::next_step() {
-    auto temp = cities;
-    swap(temp[randrange()], temp[randrange()]);
-    if (getTotalDistance(temp) < getTotalDistance() or
-        random() < P(temp)) {
-        cities.swap(temp);
+    auto dim = (int) cities.size();
+    for (auto i = 0; i < dim * dim / 4; i++) {
+        auto temp = cities;
+        swap(temp[randrange()], temp[randrange()]);
+        auto diff = getTotalDistance(temp) - getTotalDistance();
+        if (diff <= 0) {
+            cities.swap(temp);
+        } else if (random() < P(temp)) {
+            cities.swap(temp);
+        }
     }
-    G();
+    T = G();
 }
 
 double Graph::P(vector<City> &c) const {
-    return exp(-(getTotalDistance(c) - getTotalDistance()) / T);
+    return exp((getTotalDistance() - getTotalDistance(c)) / T);
 }
 
-double Graph::G() {
-    T *= alpha;
+double Graph::G() const {
+    return T * alpha;
 }
 
 int Graph::randrange() const {
@@ -56,7 +71,7 @@ int Graph::randrange() const {
 }
 
 double Graph::random() const {
-    return double(rand()) / RAND_MAX;
+    return double(rand() % 100) / 100;
 }
 
 int Graph::getDistance(const City &c1, const City &c2) const {
@@ -70,7 +85,7 @@ int Graph::getTotalDistance() const {
 }
 
 int Graph::getTotalDistance(vector<City> vec) const {
-    int total = 0;
+    int total = getDistance(vec.back(), vec.front());
     for (auto it = vec.begin() + 1; it != vec.end(); it++) {
         total += getDistance(*(it - 1), *it);
     }
@@ -90,6 +105,23 @@ void Graph::print_permutation() const {
         printf(", %d", it->index);
     }
     printf(">");
+}
+
+void Graph::initT() {
+    vector<City> v;
+    double mmax = 0;
+    double mmin = 9999999;
+    int dim = (int) cities.size();
+    for (auto i = 0; i < dim * dim; i++) {
+        v.clear();
+        v = cities;
+        random_shuffle(v.begin(), v.end());
+
+        mmax = std::max(mmax, (double) getTotalDistance(v));
+        mmin = std::min(mmin, (double) getTotalDistance(v));
+    }
+
+    T = -(mmax - mmin) / log(.9);
 }
 
 
