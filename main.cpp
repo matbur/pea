@@ -4,12 +4,15 @@
 
 #include "Graph.h"
 
-int main() {
+int main(int argc, char **argv) {
     srand((unsigned int) time(nullptr));
 
-//    auto g = new Graph("data/my10.tsp");
-//    auto g = new Graph("data/eil51.tsp");
-    auto g = new Graph("data/st70.tsp");
+    if (argc < 2) {
+        printf("usage: %s <filename>", argv[0]);
+        exit(1);
+    }
+
+    auto g = new Graph(argv[1]);
 
     g->run();
 

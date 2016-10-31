@@ -25,7 +25,7 @@ public:
 
     File(const string &fileName);
 
-    static string int2string(int n);
+    bool loadFile(const string &fileName);
 };
 
 // trim from start

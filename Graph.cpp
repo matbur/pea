@@ -32,14 +32,14 @@ void Graph::run() {
     while (T > Tmin) {
         i++;
         next_step();
-        if (i % 100 == 0)
+        if (i % 1000 == 0) {
             printf("%d: %.10f    %d    %d\n", i, T, getTotalDistance(), getTotalDistance(best));
+        }
         if (getTotalDistance(cities) < getTotalDistance(best)) {
-            puts("zmieniono");
+//            puts("zmieniono");
             best = cities;
         }
     }
-    cout << i << endl;
     cities = best;
 }
 
@@ -104,7 +104,7 @@ void Graph::print_permutation() const {
     for (auto it = cities.begin() + 1; it != cities.end(); it++) {
         printf(", %d", it->index);
     }
-    printf(">");
+    puts(">");
 }
 
 void Graph::initT() {

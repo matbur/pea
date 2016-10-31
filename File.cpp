@@ -5,7 +5,19 @@
 #include "File.h"
 
 File::File(const string &fileName) {
+    if (!loadFile(fileName)) {
+        puts("Error with file");
+        exit(1);
+    }
+}
+
+bool File::loadFile(const string &fileName) {
     ifstream file(fileName.c_str());
+
+    if (!file.good()) {
+        return false;
+    }
+
     string line, fieldName, field;
     string delimiter = ":";
     while (getline(file, line)) {
@@ -35,12 +47,6 @@ File::File(const string &fileName) {
         }
     }
     file.close();
+    return true;
 }
 
-string File::int2string(int n) {
-    stringstream ss;
-    string s;
-    ss << n;
-    ss >> s;
-    return s;
-}
