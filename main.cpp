@@ -3,21 +3,27 @@
 #include <ctime>
 
 #include "Graph.h"
+#include "ATSP.h"
+#include "FileSupport.h"
+
+using namespace std;
 
 int main(int argc, char **argv) {
     srand((unsigned int) time(nullptr));
 
     if (argc < 2) {
-        printf("usage: %s <filename>", argv[0]);
+        printf("usage: %s <filename>\n", argv[0]);
         exit(1);
     }
 
-    auto g = new Graph(argv[1]);
+    string name = argv[1];
+    auto g = Graph();
+    FileSupport::loadTspFile(name, g);
+    auto atsp = new ATSP(&g);
 
-    g->run();
+    auto annealing = atsp->Annealing();
 
-    cout << endl << g->getTotalDistance() << endl;
-    g->print_permutation();
+    cout << endl << annealing << endl;
 
     return 0;
 }

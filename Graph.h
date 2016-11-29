@@ -1,53 +1,44 @@
-//
-// Created by matbur on 08.10.16.
-//
-
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include <random>
-
-#include "City.h"
-#include "File.h"
-
-using namespace std;
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <climits>
 
 class Graph {
-public:
-    vector<City> cities;
     int points;
-    double T, Tmin = .0001, alpha = .999;
+    int **weights;
 
-    Graph(File file);
+    void clear();
 
-    Graph(File *file);
+    void init();
 
-    Graph(string filename);
+public:
+    Graph();
 
-    void init(File *file);
+    Graph(int points);
 
-    void run();
+    Graph(const Graph &graph);
 
-    void next_step();
+    ~Graph();
 
-    double P(vector<City> &c) const;
+    Graph &operator=(const Graph &graph);
 
-    double G() const;
+    bool operator<(const Graph &graph);
 
-    int randrange() const;
+    bool addEdge(int from, int to, int weight, bool oneway = false);
 
-    double random() const;
+    void reset(int points);
 
-    int getDistance(const City &c1, const City &c2) const;
+    void generate(int points, bool oneway = false);
 
-    int getTotalDistance() const;
+    bool pointExists(int point) const;
 
-    int getTotalDistance(vector<City> vec) const;
+    int getWeightsSum() const;
+
+    int getPoints() const;
+
+    int getWeight(int row, int col) const;
 
     void print() const;
-
-    void print_permutation() const;
-
-    void initT();
 };

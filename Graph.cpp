@@ -1,127 +1,178 @@
-//
-// Created by matbur on 08.10.16.
-//
-
 #include "Graph.h"
 
-Graph::Graph(File file) {
-    init(&file);
+
+Graph::Graph() : points(0), weights(nullptr) {}
+
+Graph::Graph(int points) : points(points) {
+    init();
 }
 
-Graph::Graph(File *file) {
-    init(file);
+Graph::Graph(const Graph &graph) : Graph() {
+    if (this == &graph) return;
+
+    points = graph.points;
+    init();
+
+    for (auto r = 0; r < points; r++)
+        memcpy(weights[r], graph.weights[r], sizeof(int) * points);
 }
 
-Graph::Graph(string filename) {
-    init(new File(filename));
+Graph &Graph::operator=(const Graph &graph) {
+    if (this == &graph) return *this;
+
+    reset(graph.points);
+
+    for (auto r = 0; r < points; r++)
+        memcpy(weights[r], graph.weights[r], sizeof(int) * points);
+
+    return *this;
 }
 
-void Graph::init(File *file) {
-    points = file->dimension;
-    for (auto i: file->node_coord_section) {
-        cities.push_back(City(i));
-    }
-
-    initT();
+bool Graph::operator<(const Graph &graph) {
+    return getWeightsSum() < graph.getWeightsSum();
 }
 
-void Graph::run() {
-    auto best = cities;
-    random_shuffle(cities.begin(), cities.end());
-    auto i = 0;
-    while (T > Tmin) {
-        i++;
-        next_step();
-        if (i % 1000 == 0) {
-            printf("%d: %.10f    %d    %d\n", i, T, getTotalDistance(), getTotalDistance(best));
+Graph::~Graph() {
+    clear();
+}
+
+void Graph::reset(int points) {
+    clear();
+    this->points = points;
+    init();
+}
+
+void Graph::init() {
+    weights = new int *[points];
+
+    for (auto i = 0; i < points; i++)
+        weights[i] = new int[points];
+
+    for (auto r = 0; r < points; r++)
+        memset(weights[r], -1, sizeof(int) * points);
+}
+
+bool Graph::addEdge(int from, int to, int weight, bool oneway /*= false*/) {
+    if (!pointExists(from) || !pointExists(to) || from == to)
+        return false;
+
+    bool added = weights[from][to] == -1;
+
+    if (added)
+        weights[from][to] = weight;
+
+    if (oneway)
+        return added;
+
+    added = weights[to][from] == -1;
+
+    if (added)
+        weights[to][from] = weight;
+
+    return added;
+}
+
+void Graph::clear() {
+    for (auto i = 0; i < points; i++)
+        delete[] weights[i];
+
+    delete[] weights;
+    weights = nullptr;
+    points = 0;
+}
+
+int Graph::getPoints() const {
+    return points;
+}
+
+bool Graph::pointExists(int point) const {
+    return point >= 0 && point < points;
+}
+
+int Graph::getWeightsSum() const {
+    int sum = 0, temp;
+    for (auto r = 0; r < points; r++)
+        for (auto c = 0; c < points; c++) {
+            temp = weights[r][c];
+            if (temp != -1)
+                sum += temp;
         }
-        if (getTotalDistance(cities) < getTotalDistance(best)) {
-//            puts("zmieniono");
-            best = cities;
-        }
-    }
-    cities = best;
-}
-
-void Graph::next_step() {
-    auto dim = (int) cities.size();
-    for (auto i = 0; i < dim * dim / 4; i++) {
-        auto temp = cities;
-        swap(temp[randrange()], temp[randrange()]);
-        auto diff = getTotalDistance(temp) - getTotalDistance();
-        if (diff <= 0) {
-            cities.swap(temp);
-        } else if (random() < P(temp)) {
-            cities.swap(temp);
-        }
-    }
-    T = G();
-}
-
-double Graph::P(vector<City> &c) const {
-    return exp((getTotalDistance() - getTotalDistance(c)) / T);
-}
-
-double Graph::G() const {
-    return T * alpha;
-}
-
-int Graph::randrange() const {
-    return (int) (rand() % cities.size());
-}
-
-double Graph::random() const {
-    return double(rand() % 100) / 100;
-}
-
-int Graph::getDistance(const City &c1, const City &c2) const {
-    int xd = c1.x - c2.x;
-    int yd = c1.y - c2.y;
-    return int(sqrt(xd * xd + yd * yd) + .5);
-}
-
-int Graph::getTotalDistance() const {
-    return getTotalDistance(cities);
-}
-
-int Graph::getTotalDistance(vector<City> vec) const {
-    int total = getDistance(vec.back(), vec.front());
-    for (auto it = vec.begin() + 1; it != vec.end(); it++) {
-        total += getDistance(*(it - 1), *it);
-    }
-    return total;
+    if (sum == 0)
+        sum = INT_MAX;
+    return sum;
 }
 
 void Graph::print() const {
-    for (auto i = 0; i < points; i++) {
-        cities[i].print();
-        puts("");
+    printf("Points in graph: %d\n", points);
+    puts("Neighbours:");
+
+    printf("  W ");
+    for (auto i = 0; i < points; i++)
+        printf("%3d ", i);
+    putchar('\n');
+
+    int temp;
+    for (auto r = 0; r < points; r++) {
+        printf("%3d ", r);
+        for (auto c = 0; c < points; c++) {
+            temp = weights[r][c];
+            if (temp != -1)
+                printf("%3d ", temp);
+            else
+                printf("    ");
+        }
+        putchar('\n');
     }
 }
 
-void Graph::print_permutation() const {
-    printf("<%d", cities[0].index);
-    for (auto it = cities.begin() + 1; it != cities.end(); it++) {
-        printf(", %d", it->index);
+void Graph::generate(int points, bool oneway /*= false*/) {
+    if (points < 2) return;                             // musi byc conajmniej jedna krawedz
+
+    auto maxWeight = 100;                               // wagi z zakresu [1, 100]
+
+    reset(points);                                      // wyzerowanie
+
+    for (auto from = 0; from < points; from++) {
+        for (auto to = 0; to < points; to++) {
+            if (from == to)
+                continue;
+
+            addEdge(from, to, rand() % maxWeight + 1, oneway);
+        }
     }
-    puts(">");
 }
 
-void Graph::initT() {
-    vector<City> v;
-    double mmax = 0;
-    double mmin = 9999999;
-    int dim = (int) cities.size();
-    for (auto i = 0; i < dim * dim; i++) {
-        v.clear();
-        v = cities;
-        random_shuffle(v.begin(), v.end());
-
-        mmax = std::max(mmax, (double) getTotalDistance(v));
-        mmin = std::min(mmin, (double) getTotalDistance(v));
-    }
-
-    T = -(mmax - mmin) / log(.9);
+int Graph::getWeight(int row, int col) const {
+    return weights[row][col];
 }
 
+
+
+
+// example use
+/*
+int main() {
+    Graph graph(4);
+    Graph x;
+
+    printf("%d\n", x.getPoints());
+
+    graph.addEdge(0, 1, 5);
+    graph.addEdge(0, 2, 3);
+    graph.addEdge(1, 2, 1);
+    graph.addEdge(1, 3, 6);
+    graph.addEdge(2, 3, 10);
+
+    graph.print();
+
+    puts("own printing");
+    for(int p=0; p < graph.getPoints(); p++) {
+        for(auto e : graph.getNeighbours(p))
+            printf("from %d to %d by weight %d\n", p, e.to, e.weight);
+
+    }
+
+    return 0;
+}
+*/
 
